@@ -4,8 +4,7 @@
     <title>Result</title>
 </head>
 <body>
-<% String class_path="/internal/"+request.getParameter("name").replace("\\","/")+".class"; %>
-<p><a href="<%=class_path%>"><%=class_path%></a></p>
+<p><a href="/download.jar">&frasl;download.jar</a></p>
 <pre>${requestScope.log}</pre>
 </body>
 </html>

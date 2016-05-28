@@ -1,32 +1,39 @@
 package edu.utdallas;
 
+import com.sun.istack.internal.NotNull;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.tools.*;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.jar.JarOutputStream;
 
 /**
  * Created by danei on 5/26/2016.
  */
 @WebServlet("/CompileServlet")
 public class Compile extends HttpServlet{
-	public static File temp=null;
-	static{
-		try{
-			temp=Files.createTempDirectory(null).toFile();
-		}catch(IOException e){
-			e.printStackTrace();
-		}
-	}
+	static Map<String, byte[]> compiledClass=new HashMap<>();
+	static Map<String, Map> path=new HashMap<>();
+
 	protected void doPost(javax.servlet.http.HttpServletRequest request,javax.servlet.http.HttpServletResponse response) throws javax.servlet.ServletException, IOException{
 		doGet(request,response);
+	}
+
+	void addToJar(File src,JarOutputStream jar) throws IOException{
+		BufferedInputStream in=null;
+		try{
+			if(src.isDirectory()){
+
+			}
+		}finally{
+			if(in!=null) in.close();
+		}
 	}
 
 	protected void doGet(javax.servlet.http.HttpServletRequest request,javax.servlet.http.HttpServletResponse response) throws javax.servlet.ServletException, IOException{
@@ -35,10 +42,10 @@ public class Compile extends HttpServlet{
 		try{
 			JavaCompiler compiler=ToolProvider.getSystemJavaCompiler();
 			DiagnosticCollector<JavaFileObject> diagnosticCollector=new DiagnosticCollector<>();
-			StandardJavaFileManager fileManager=compiler.getStandardFileManager(diagnosticCollector,null,null);
-			String java_src=request.getParameter("src");
-			String java_name=request.getParameter("name");
-			String[] options=new String[]{"-d",temp.getCanonicalPath()};    // add -cp classpath option, etc here
+			InMemoryFileManager fileManager=new InMemoryFileManager(compiler.getStandardFileManager(diagnosticCollector,null,null));
+			@NotNull String java_src=request.getParameter("src");
+			@NotNull String java_name=request.getParameter("name");
+			String[] options=new String[]{};    // add -cp classpath option, etc here
 			JavaFileObject java_file=new SimpleJavaFileObj(java_name,java_src);
 			Iterable<? extends JavaFileObject> unit=Arrays.asList(java_file);
 			JavaCompiler.CompilationTask task=compiler.getTask(null,fileManager,diagnosticCollector,Arrays.asList(options),null,unit);
@@ -54,7 +61,18 @@ public class Compile extends HttpServlet{
 				ps.println(d.getMessage(null));
 			}
 			if(success){
-
+				compiledClass.put(java_name,fileManager.getClassBytes());
+				String[] full_path=java_name.split("\\.");
+				Map<String, Map> current=path;
+				for(int i=0;i<full_path.length-1;++i){
+					if(!current.containsKey(full_path[i]))
+						current=current.get(full_path[i]);
+					else{
+						Map<String, Map> next=new HashMap<>();
+						current.put(full_path[i],next);
+						current=next;
+					}
+				}
 			}
 		}catch(Exception e){
 			e.printStackTrace(ps);
