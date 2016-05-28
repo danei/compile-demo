@@ -12,7 +12,7 @@ import java.util.jar.Manifest;
 /**
  * Created by danei on 5/26/2016.
  */
-@WebServlet("/download.jar")
+@WebServlet("/robots.jar")
 public class FileGetter extends HttpServlet{
 	protected void doPost(javax.servlet.http.HttpServletRequest request,javax.servlet.http.HttpServletResponse response) throws javax.servlet.ServletException, IOException{
 		doGet(request,response);

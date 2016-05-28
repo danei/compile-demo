@@ -8,9 +8,7 @@ import javax.servlet.http.HttpServlet;
 import javax.tools.*;
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.JarOutputStream;
 
 /**
@@ -45,10 +43,11 @@ public class Compile extends HttpServlet{
 			InMemoryFileManager fileManager=new InMemoryFileManager(compiler.getStandardFileManager(diagnosticCollector,null,null));
 			@NotNull String java_src=request.getParameter("src");
 			@NotNull String java_name=request.getParameter("name");
-			String[] options=new String[]{};    // add -cp classpath option, etc here
+			List<String> options=new ArrayList<String>();    // add -cp classpath option, etc here
+			options.addAll(Arrays.asList("-classpath",getServletContext().getRealPath("/")+"robocode.jar"));
 			JavaFileObject java_file=new SimpleJavaFileObj(java_name,java_src);
 			Iterable<? extends JavaFileObject> unit=Arrays.asList(java_file);
-			JavaCompiler.CompilationTask task=compiler.getTask(null,fileManager,diagnosticCollector,Arrays.asList(options),null,unit);
+			JavaCompiler.CompilationTask task=compiler.getTask(null,fileManager,diagnosticCollector,options,null,unit);
 			boolean success=task.call();
 			ps.println("Compilation "+(success ? "is successful." : "failed!"));
 			for(Diagnostic d : diagnosticCollector.getDiagnostics()){
